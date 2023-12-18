@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Juego de Snake</title>
+        <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    canvas {
+      border: 1px solid white;
+    }
+  </style>
+    </head>
+    <body>
+        <canvas width="400" height="400" id="juego"></canvas>
+        <script>
+    var canvas = document.getElementById('juego');
+    var contexto = canvas.getContext('2d');
+    var grid = 16;
+    var cuenta = 0;
+    var serpiente = {
+      x: 160,
+      y: 160,
+      // velocidad de la serpiente. se mueve una longitud de grid cada fotograma en la dirección x o y
+      dx: grid,
+      dy: 0,
+      // guarda todas las posiciones del cuerpo de la serpiente
+      celdas: [],
+      // longitud de la serpiente. crece al comer una manzana
+      maxCeldas: 4
+    };
+    var manzana = {
+      x: 320,
+      y: 320
+    };
+    // obtiene números enteros aleatorios en un rango específico
+    // @see [6](https://stackoverflow.com/a/1527820/2124254)
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min)) + min;
+    }
+    // bucle del juego
+    function loop() {
+      requestAnimationFrame(loop);
+      // ralentiza el bucle del juego a 15 fps en lugar de 60 (60/15 = 4)
+      if (++cuenta < 4) {
+        return;
+      }
+      cuenta = 0;
+      contexto.clearRect(0,0,canvas.width,canvas.height);
+      // mueve la serpiente según su velocidad
+      serpiente.x += serpiente.dx;
+      serpiente.y += serpiente.dy;
+      // envuelve la posición de la serpiente horizontalmente en el borde de la pantalla
+      if (serpiente.x < 0) {
+        serpiente.x = canvas.width - grid;
+      }
+      else if (serpiente.x >= canvas.width) {
+        serpiente.x = 0;
+      }
+      // envuelve la posición de la serpiente verticalmente en el borde de la pantalla
+      if (serpiente.y < 0) {
+        serpiente.y = canvas.height - grid;
+      }
+      else if (serpiente.y >= canvas.height) {
+        serpiente.y = 0;
+      }
+      // guarda la posición actual de la cabeza de la serpiente
+      serpiente.celdas.unshift({x: serpiente.x, y: serpiente.y});
+      // elimina las celdas a medida que nos alejamos de ellas
+      if (serpiente.celdas.length > serpiente.maxCeldas) {
+        serpiente.celdas.pop();
+      }
+      // dibuja la manzana
+      contexto.fillStyle = 'red';
+      contexto.fillRect(manzana.x, manzana.y, grid-1, grid-1);
+      // dibuja la serpiente una celda a la vez
+      contexto.fillStyle = 'green';
+      serpiente.celdas.forEach(function(celda, indice) {
+        // dibujar 1 px más pequeño que el grid crea un efecto de rejilla en el cuerpo de la serpiente
+        // para que puedas ver cuánto mide
+        contexto.fillRect(celda.x, celda.y, grid-1, grid-1);  
+        // la serpiente comió la manzana
+        if (celda.x === manzana.x && celda.y === manzana.y) {
+          serpiente.maxCeldas++;
+          // la pantalla es de 400x400 que son 25x25 grids
+          manzana.x = getRandomInt(0, 25) * grid;
+          manzana.y = getRandomInt(0, 25) * grid;
+        }
+        // comprueba la colisión con todas las celdas después de esta (ordenación de burbuja modificada)
+        for (var i = indice + 1; i < serpiente.celdas.length; i++) {
+          // la serpiente ocupa el mismo espacio que una parte del cuerpo. reinicia el juego
+          if (celda.x === serpiente.celdas[i].x && celda.y === serpiente.celdas[i].y) {
+            serpiente.x = 160;
+            serpiente.y = 160;
+            serpiente.celdas = [];
+            serpiente.maxCeldas = 4;
+            serpiente.dx = grid;
+            serpiente.dy = 0;
+            manzana.x = getRandomInt(0, 25) * grid;
+            manzana.y = getRandomInt(0, 25) * grid;
+          }
+        }
+      });
+    }
+    // escucha los eventos del teclado para mover la serpiente
+    document.addEventListener('keydown', function(e) {
+      // evita que la serpiente retroceda sobre sí misma comprobando que no se está moviendo
+      // en el mismo eje (presionar izquierda mientras se mueve a la izquierda no hará nada, y presionar derecha mientras se mueve a la izquierda
+      // no debería permitirte chocar con tu propio cuerpo)
+      // tecla de flecha izquierda
+      if (e.which === 37 && serpiente.dx === 0) {
+        serpiente.dx = -grid;
+        serpiente.dy = 0;
+      }
+      // tecla de flecha arriba
+      else if (e.which === 38 && serpiente.dy === 0) {
+        serpiente.dy = -grid;
+        serpiente.dx = 0;
+      }
+      // tecla de flecha derecha
+      else if (e.which === 39 && serpiente.dx === 0) {
+        serpiente.dx = grid;
+        serpiente.dy = 0;
+      }
+      // tecla de flecha abajo
+      else if (e.which === 40 && serpiente.dy === 0) {
+        serpiente.dy = grid;
+        serpiente.dx = 0;
+      }
+    });
+    // inicia el juego
+    requestAnimationFrame(loop);
+  </script>
+    </body>
+</html>
