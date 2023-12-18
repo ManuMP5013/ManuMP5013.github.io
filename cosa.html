@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pelota</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.0/p5.min.js"></script>
+</head>
+<body>
+  <canvas width="1000" height="500"></canvas>
+  <script>
+    var canvas = document.querySelector('canvas');
+    var context = canvas.getContext('2d');
+
+    var ball = new Ball();
+    var choques = 0; // Esta es la variable que cuenta los choques
+
+    function Ball() {
+      this.x = canvas.width / 2;
+      this.y = canvas.height / 2;
+      this.vx = 0;
+      this.vy = 0;
+    }
+
+    Ball.prototype.update = function() {
+      this.x += this.vx;
+      this.y += this.vy;
+
+      if (this.x < 0) {
+        this.x = 0;
+        this.vx *= -1;
+        choques++; // Aumenta el contador de choques
+      }
+      if (this.x > canvas.width) {
+        this.x = canvas.width;
+        this.vx *= -1;
+        choques++; // Aumenta el contador de choques
+      }
+      if (this.y < 0) {
+        this.y = 0;
+        this.vy *= -1;
+        choques++; // Aumenta el contador de choques
+      }
+      if (this.y > canvas.height) {
+        this.y = canvas.height;
+        this.vy *= -1;
+        choques++; // Aumenta el contador de choques
+      }
+    };
+
+    Ball.prototype.draw = function() {
+      context.beginPath();
+      context.arc(this.x, this.y, 10, 0, 2 * Math.PI);
+      context.fill();
+    };
+
+    window.addEventListener('keydown', function(event) {
+      if (event.keyCode === 37) {
+        ball.vx -= 5;
+      }
+      if (event.keyCode === 39) {
+        ball.vx += 5;
+      }
+      if (event.keyCode === 38) {
+        ball.vy -= 5;
+      }
+      if (event.keyCode === 40) {
+        ball.vy += 5;
+      }
+    });
+
+    setInterval(function() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      ball.update();
+      ball.draw();
+      context.font = "20px Arial"; // Establece el tipo y tamaño de la fuente
+      context.fillText("Choques: " + choques, 10, 30, 100); // Muestra el contador de choques
+    }, 1000 / 60);
+  </script>
+</body>
+</html>
